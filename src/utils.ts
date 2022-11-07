@@ -1,10 +1,17 @@
-import { Browser, launch, Page } from 'puppeteer';
+import puppeteerOrig, { Browser, Page } from 'puppeteer';
+import puppeteerExtra from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import dotenv from 'dotenv';
 import { PAGE_SELECTORS, STATUS_TEXT } from './constants';
 import { TimeSlot } from './types';
 
+puppeteerExtra.use(StealthPlugin());
+
 dotenv.config();
-const DEBUG = process.env.DEBUG === 'true';
+const GO_HEADFUL = process.env.GO_HEADFUL === 'true';
+const USE_STEALTH = process.env.USE_STEALTH === 'true';
+
+const puppeteer = USE_STEALTH ? puppeteerExtra : puppeteerOrig;
 
 const getTennisCourtUrl = (courtId: number, date: string) => {
   const encodedDate = encodeURIComponent(date);
@@ -14,9 +21,12 @@ const getTennisCourtUrl = (courtId: number, date: string) => {
 const getNewPage = async (browser: Browser, url: string) => {
   try {
     const page = await browser.newPage();
-    await page.setUserAgent(
-      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
-    );
+    if (!USE_STEALTH) {
+      // stealth will update this for us already
+      await page.setUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+      );
+    }
     await page.goto(url);
     return page;
   } catch (e) {
@@ -77,7 +87,7 @@ export const getTimeSlots = async (
     const courtUrl = getTennisCourtUrl(courtId, date);
     const courtPage = await getNewPage(browser, courtUrl);
     const result = await getTimeSlotsFromPage(courtPage);
-    if (!DEBUG) {
+    if (!GO_HEADFUL) {
       await courtPage?.close();
     }
     return result;
@@ -93,13 +103,13 @@ export const getTimeSlots = async (
 export const runWithBrowser = async <T>(
   opWithBrowser: (browser: Browser) => Promise<T>,
 ) => {
-  const browser = await launch({
-    headless: !DEBUG,
-    ...(DEBUG ? { slowMo: 500 } : {}),
+  const browser = await puppeteer.launch({
+    headless: !GO_HEADFUL,
+    ...(GO_HEADFUL ? { slowMo: 500 } : {}),
     args: ['--no-sandbox'],
   });
   const result = await opWithBrowser(browser);
-  if (!DEBUG) {
+  if (!GO_HEADFUL) {
     await browser.close();
   }
   return result;
