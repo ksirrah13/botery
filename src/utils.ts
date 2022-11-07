@@ -1,4 +1,4 @@
-import puppeteerOrig, { Browser, Page } from 'puppeteer';
+import puppeteerOrig, { Browser, Page, executablePath } from 'puppeteer';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import dotenv from 'dotenv';
@@ -107,6 +107,7 @@ export const runWithBrowser = async <T>(
     headless: !GO_HEADFUL,
     ...(GO_HEADFUL ? { slowMo: 500 } : {}),
     args: ['--no-sandbox'],
+    executablePath: executablePath(),
   });
   const result = await opWithBrowser(browser);
   if (!GO_HEADFUL) {
