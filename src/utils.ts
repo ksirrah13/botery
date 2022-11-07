@@ -1,7 +1,9 @@
-import { Browser, Page } from 'puppeteer';
+import { Browser, launch, Page } from 'puppeteer';
+import dotenv from 'dotenv';
 import { PAGE_SELECTORS, STATUS_TEXT } from './constants';
 import { TimeSlot } from './types';
 
+dotenv.config();
 const DEBUG = process.env.DEBUG === 'true';
 
 const getTennisCourtUrl = (courtId: number, date: string) => {
@@ -71,11 +73,34 @@ export const getTimeSlots = async (
     date: string;
   },
 ): Promise<TimeSlot[]> => {
-  const courtUrl = getTennisCourtUrl(courtId, date);
-  const courtPage = await getNewPage(browser, courtUrl);
-  const result = await getTimeSlotsFromPage(courtPage);
+  try {
+    const courtUrl = getTennisCourtUrl(courtId, date);
+    const courtPage = await getNewPage(browser, courtUrl);
+    const result = await getTimeSlotsFromPage(courtPage);
+    if (!DEBUG) {
+      await courtPage?.close();
+    }
+    return result;
+  } catch (e) {
+    console.log('error getting timeslots', { courtId, date });
+    console.error(e);
+    return [
+      { time: STATUS_TEXT.UNAVAILABLE, status: 'Error getting timeslots from page' },
+    ];
+  }
+};
+
+export const runWithBrowser = async <T>(
+  opWithBrowser: (browser: Browser) => Promise<T>,
+) => {
+  const browser = await launch({
+    headless: !DEBUG,
+    ...(DEBUG ? { slowMo: 500 } : {}),
+    args: ['--no-sandbox'],
+  });
+  const result = await opWithBrowser(browser);
   if (!DEBUG) {
-    await courtPage?.close();
+    await browser.close();
   }
   return result;
 };
