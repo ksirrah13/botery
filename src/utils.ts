@@ -2,6 +2,8 @@ import { Browser, Page } from 'puppeteer';
 import { PAGE_SELECTORS, STATUS_TEXT } from './constants';
 import { TimeSlot } from './types';
 
+const DEBUG = process.env.DEBUG === 'true';
+
 const getTennisCourtUrl = (courtId: number, date: string) => {
   const encodedDate = encodeURIComponent(date);
   return `https://www.spotery.com/f/adf.task-flow?adf.tfDoc=%2FWEB-INF%2Ftaskflows%2Ffacility%2Ftf-faci-detail.xml&psOrgaSk=${courtId}&psReservationDateStr=${encodedDate}&adf.tfId=tf-faci-detail`;
@@ -13,7 +15,7 @@ const getNewPage = async (browser: Browser, url: string) => {
     await page.setUserAgent(
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
     );
-    page.goto(url);
+    await page.goto(url);
     return page;
   } catch (e) {
     console.log('error getting new page for url', { url });
@@ -71,5 +73,9 @@ export const getTimeSlots = async (
 ): Promise<TimeSlot[]> => {
   const courtUrl = getTennisCourtUrl(courtId, date);
   const courtPage = await getNewPage(browser, courtUrl);
-  return getTimeSlotsFromPage(courtPage);
+  const result = await getTimeSlotsFromPage(courtPage);
+  if (!DEBUG) {
+    await courtPage?.close();
+  }
+  return result;
 };

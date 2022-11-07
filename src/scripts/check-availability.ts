@@ -31,7 +31,6 @@ const DEBUG = process.env.DEBUG === 'true';
   });
   console.log('hamilton test 3', hamilton1Times3);
 
-  console.log('debug', DEBUG);
   if (!DEBUG) {
     await browser.close();
   }
