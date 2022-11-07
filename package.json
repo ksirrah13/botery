@@ -4,14 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && node dist/app.js",
+    "start": "node dist/app.js",
     "build": "tsc",
-    "postinstall": "tsc",
+    "postinstall": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "lint:ci": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
-    "check-availability": "npm run build && node dist/scripts/check-availability.js"
+    "check-availability": "node dist/scripts/check-availability.js"
   },
   "keywords": [],
   "author": "",
