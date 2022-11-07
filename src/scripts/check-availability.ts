@@ -4,10 +4,12 @@ import { getTimeSlots } from '../utils';
 
 dotenv.config();
 
+const DEBUG = process.env.DEBUG === 'true';
+
 (async () => {
   const browser = await launch({
-    headless: false,
-    // slowMo: 500,
+    headless: !DEBUG,
+    ...(DEBUG ? { slowMo: 500 } : {}),
     args: ['--no-sandbox'],
   });
 
@@ -29,5 +31,8 @@ dotenv.config();
   });
   console.log('hamilton test 3', hamilton1Times3);
 
-  // setTimeout(() => browser.close(), 3000);
+  console.log('debug', DEBUG);
+  if (!DEBUG) {
+    await browser.close();
+  }
 })();
