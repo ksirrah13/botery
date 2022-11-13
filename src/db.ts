@@ -12,12 +12,4 @@ export const setupDb = async () => {
     console.log('error connecting to mongodb');
     throw e;
   }
-
-  await JobStatus.create({ jobId: 'kyle', status: 'running' });
-  await JobStatus.create({ jobId: 'another', status: 'ran' });
-
-  const jobs = await JobStatus.find().lean();
-  for (const job of jobs) {
-    console.log('job', job.jobId, job.status, job._id);
-  }
 };

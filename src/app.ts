@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import { COURTS, STATUS_TEXT } from './constants';
 import { setupDb } from './db';
 import { getTimeSlots, runWithBrowser } from './utils';
+import { runCheck } from './scripts/check-availability';
 
 dotenv.config();
 
@@ -50,5 +51,6 @@ app.get('/ham', async (req, res) => {
 
 app.listen(PORT, async () => {
   await setupDb();
+  await runCheck();
   console.log(`Listening on port ${PORT}...`);
 });

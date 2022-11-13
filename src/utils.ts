@@ -2,7 +2,7 @@ import puppeteerOrig, { Browser, Page, executablePath } from 'puppeteer';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import dotenv from 'dotenv';
-import { PAGE_SELECTORS, STATUS_TEXT } from './constants';
+import { PAGE_SELECTORS, SlotStatus, STATUS_TEXT } from './constants';
 import { TimeSlot } from './types';
 
 puppeteerExtra.use(StealthPlugin());
@@ -33,6 +33,15 @@ const getNewPage = async (browser: Browser, url: string) => {
     console.log('error getting new page for url', { url });
   }
 };
+
+interface TimeSlotSearchParams {
+  courtId: number;
+  date: string;
+}
+
+interface Options {
+  filterByStatus?: SlotStatus;
+}
 
 const getTimeSlotsFromPage = async (page?: Page): Promise<TimeSlot[]> => {
   if (!page) {
@@ -75,20 +84,19 @@ const getTimeSlotsFromPage = async (page?: Page): Promise<TimeSlot[]> => {
 
 export const getTimeSlots = async (
   browser: Browser,
-  {
-    courtId,
-    date,
-  }: {
-    courtId: number;
-    date: string;
-  },
+  { courtId, date }: TimeSlotSearchParams,
+  options?: Options,
 ): Promise<TimeSlot[]> => {
   try {
     const courtUrl = getTennisCourtUrl(courtId, date);
     const courtPage = await getNewPage(browser, courtUrl);
     const result = await getTimeSlotsFromPage(courtPage);
+
     if (!GO_HEADFUL) {
       await courtPage?.close();
+    }
+    if (options?.filterByStatus) {
+      return result.filter(({ status }) => status === options.filterByStatus);
     }
     return result;
   } catch (e) {
@@ -105,7 +113,7 @@ export const runWithBrowser = async <T>(
 ) => {
   const browser = await puppeteer.launch({
     headless: !GO_HEADFUL,
-    ...(GO_HEADFUL ? { slowMo: 500 } : {}),
+    ...(GO_HEADFUL ? { slowMo: 200 } : {}),
     args: ['--no-sandbox'],
     executablePath: executablePath(),
   });
