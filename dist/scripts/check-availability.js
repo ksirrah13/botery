@@ -22,6 +22,7 @@ const runCheckForAlerts = () => __awaiter(void 0, void 0, void 0, function* () {
         userId: 'kyle',
         status: 'new',
     }).exec();
+    console.log('court alerts counts', courtAlerts.length);
     const alertsByCourt = (0, lodash_1.groupBy)(courtAlerts, 'courtId');
     const datesByCourtId = (0, lodash_1.mapValues)(alertsByCourt, alerts => alerts.map(alert => alert.date));
     const resultsByCourtAndDate = yield (0, puppeteer_helpers_1.runWithBrowser)((browser) => __awaiter(void 0, void 0, void 0, function* () {
