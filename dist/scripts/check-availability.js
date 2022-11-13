@@ -8,15 +8,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runCheck = void 0;
 const lodash_1 = require("lodash");
+const dotenv_1 = __importDefault(require("dotenv"));
 const CourtAlerts_1 = require("../models/CourtAlerts");
 const puppeteer_helpers_1 = require("../utils/puppeteer-helpers");
 const time_helpers_1 = require("../utils/time-helpers");
 const constants_1 = require("../constants");
 const notifications_1 = require("../utils/notifications");
 const db_1 = require("../db");
+dotenv_1.default.config();
 const runCheckForAlerts = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const courtAlerts = yield CourtAlerts_1.CourtAlerts.find({

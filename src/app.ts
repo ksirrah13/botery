@@ -51,6 +51,5 @@ app.get('/ham', async (req, res) => {
 
 app.listen(PORT, async () => {
   await setupDb();
-  await runCheck();
   console.log(`Listening on port ${PORT}...`);
 });

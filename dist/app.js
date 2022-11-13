@@ -17,7 +17,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const constants_1 = require("./constants");
 const db_1 = require("./db");
 const puppeteer_helpers_1 = require("./utils/puppeteer-helpers");
-const check_availability_1 = require("./scripts/check-availability");
 dotenv_1.default.config();
 const { PORT } = process.env;
 const app = (0, express_1.default)();
@@ -56,6 +55,5 @@ app.get('/ham', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 app.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     yield (0, db_1.setupDb)();
-    yield (0, check_availability_1.runCheck)();
     console.log(`Listening on port ${PORT}...`);
 }));

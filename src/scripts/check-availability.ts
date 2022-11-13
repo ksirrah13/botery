@@ -1,4 +1,5 @@
 import { groupBy, mapValues } from 'lodash';
+import dotenv from 'dotenv';
 import { CourtAlerts } from '../models/CourtAlerts';
 import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
 import {
@@ -10,6 +11,8 @@ import { TimeSlot } from '../types';
 import { DND_END, DND_START } from '../constants';
 import { sendAlert } from '../utils/notifications';
 import { runWithDbConnection } from '../db';
+
+dotenv.config();
 
 const runCheckForAlerts = async () => {
   const courtAlerts = await CourtAlerts.find({
