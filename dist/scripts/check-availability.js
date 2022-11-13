@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.runCheck = void 0;
 const lodash_1 = require("lodash");
 const CourtAlerts_1 = require("../models/CourtAlerts");
 const puppeteer_helpers_1 = require("../utils/puppeteer-helpers");
@@ -22,7 +23,6 @@ const runCheckForAlerts = () => __awaiter(void 0, void 0, void 0, function* () {
         userId: 'kyle',
         status: 'new',
     }).exec();
-    console.log('court alerts counts', courtAlerts.length);
     const alertsByCourt = (0, lodash_1.groupBy)(courtAlerts, 'courtId');
     const datesByCourtId = (0, lodash_1.mapValues)(alertsByCourt, alerts => alerts.map(alert => alert.date));
     const resultsByCourtAndDate = yield (0, puppeteer_helpers_1.runWithBrowser)((browser) => __awaiter(void 0, void 0, void 0, function* () {
@@ -83,4 +83,5 @@ const runCheck = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     yield runCheckForAlerts();
 });
-(0, db_1.runWithDbConnection)(() => runCheck());
+exports.runCheck = runCheck;
+(0, db_1.runWithDbConnection)(() => (0, exports.runCheck)());
