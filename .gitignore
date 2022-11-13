@@ -1,6 +1,4 @@
 node_modules
-dist/*
-!dist/scripts
 .vscode
 Procfile
 .env
