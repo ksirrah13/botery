@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import { COURTS, STATUS_TEXT } from './constants';
 import { setupDb } from './db';
-import { getTimeSlots, runWithBrowser } from './utils';
+import { getTimeSlots, runWithBrowser } from './utils/puppeteer-helpers';
 import { runCheck } from './scripts/check-availability';
 
 dotenv.config();

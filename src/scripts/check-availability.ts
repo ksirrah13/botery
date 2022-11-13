@@ -1,72 +1,92 @@
-import { groupBy, keyBy, mapValues } from 'lodash';
+import { groupBy, mapValues } from 'lodash';
 import { CourtAlerts } from '../models/CourtAlerts';
 import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
-import { parseDateToString, parseStringToDate, validForRange } from '../utils/dates';
-import { AlertResults } from '../types';
+import {
+  parseDateToString,
+  parseStringToDate,
+  validForRange,
+} from '../utils/time-helpers';
+import { TimeSlot } from '../types';
+import { DND_END, DND_START } from '../constants';
+import { sendAlert } from '../utils/notifications';
 
 const runCheckForUser = async () => {
-  // get configured checks for user
   const courtAlerts = await CourtAlerts.find({
     userId: 'kyle',
     status: 'new',
-  })
-    .select('courtId date timeStart timeEnd')
-    .lean()
-    .exec();
-  // check if we've already alerted and should keep checking
-  // only alert once for each court and date
-  // get time slots for courts and dates
+  }).exec();
+
   const alertsByCourt = groupBy(courtAlerts, 'courtId');
-  const timeSlotResults: AlertResults[] = [];
-
-  for (const courtId of Object.keys(alertsByCourt)) {
-    const alertsPerCourt = alertsByCourt[courtId];
-
-    const alertsByDate = groupBy(alertsPerCourt, 'date');
-
-    for (const alertDate of Object.keys(alertsByDate)) {
-      const courtToNumber = parseInt(courtId, 10);
-      timeSlotResults.push({ courtId: courtToNumber, date: alertDate, slots: [] });
-    }
-  }
-
-  // TODO build new time slot data and resturn don't mutate
-  await runWithBrowser(async browser => {
-    for (const alertToCheck of timeSlotResults) {
-      console.log('getting time slots', alertToCheck);
-      const result = await getTimeSlots(
-        browser,
-        {
-          courtId: alertToCheck.courtId,
-          date: alertToCheck.date,
-        },
-        { filterByStatus: 'Available' },
-      );
-      alertToCheck.slots = result;
-    }
-  });
-
-  const resultsGroupedByCourt = groupBy(timeSlotResults, 'courtId');
-  const resultsByCourtAndDate = mapValues(resultsGroupedByCourt, resultsForCourt =>
-    keyBy(resultsForCourt, 'date'),
+  const datesByCourtId = mapValues(alertsByCourt, alerts =>
+    alerts.map(alert => alert.date),
   );
 
+  const resultsByCourtAndDate = await runWithBrowser(async browser => {
+    const courtAndDateResults: Record<string, Record<string, TimeSlot[]>> = {};
+    for (const courtIdString of Object.keys(datesByCourtId)) {
+      const courtId = parseInt(courtIdString, 10);
+      const alertDates = datesByCourtId[courtId];
+      const dateResults: Record<string, TimeSlot[]> = {};
+      for (const date of alertDates) {
+        console.log('checking for availability', { date, courtId });
+        const result = await getTimeSlots(
+          browser,
+          {
+            courtId,
+            date,
+          },
+          { filterByStatus: 'Available' },
+        );
+        dateResults[date] = result;
+        console.log('results', { date, courtId, result });
+      }
+      courtAndDateResults[courtIdString] = dateResults;
+    }
+    return courtAndDateResults;
+  });
+
   for (const alert of courtAlerts) {
-    console.log('testing', { alert });
     const start = parseStringToDate(alert.timeStart);
     const end = parseStringToDate(alert.timeEnd);
     const timeSlots = resultsByCourtAndDate[alert.courtId]?.[alert.date];
-    const filteredTimes = timeSlots.slots
+    const filteredTimes = timeSlots
       .map(slot => parseStringToDate(slot.time))
       .filter(time => validForRange(start, end, time));
-    const stringTimes = filteredTimes.map(time => parseDateToString(time));
-    if (stringTimes.length > 0) {
-      console.log('found times', { alert, stringTimes });
+    if (filteredTimes.length > 0) {
+      const stringTimes = filteredTimes.map(time => parseDateToString(time) ?? '');
+      console.log('Found available times! Sending alert!', {
+        userId: alert.userId,
+        courtId: alert.courtId,
+        date: alert.date,
+        start: alert.timeStart,
+        end: alert.timeEnd,
+        foundTimes: stringTimes,
+      });
+      // TODO add users and alert strings to db
+      await sendAlert(
+        [process.env.TEST_RECIPIENTS ?? ''],
+        parseInt(alert.courtId, 10),
+        alert.date,
+        stringTimes,
+      );
+      await alert.updateOne({ status: 'alerted' });
     }
   }
 };
 
 export const runCheck = async () => {
   // await createTestData();
+  if (process.env.ENABLE_DND) {
+    // don't run or alert at night
+    const currentHours = new Date().getHours();
+    if (currentHours >= DND_START || currentHours < DND_END) {
+      console.log('skipping check during DND time', {
+        currentHours,
+        DND_START,
+        DND_END,
+      });
+      return;
+    }
+  }
   await runCheckForUser();
 };

@@ -16,3 +16,8 @@ export const COURTS = {
   HAMILTON_1: 4441573,
   HAMILTON_2: 3333274,
 };
+
+export const TIME_OFFSET = 8;
+
+export const DND_START = 23; // 11 pm
+export const DND_END = 8; // am

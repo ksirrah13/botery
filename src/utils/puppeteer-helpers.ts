@@ -13,7 +13,7 @@ const USE_STEALTH = process.env.USE_STEALTH === 'true';
 
 const puppeteer = USE_STEALTH ? puppeteerExtra : puppeteerOrig;
 
-const getTennisCourtUrl = (courtId: number, date: string) => {
+export const getTennisCourtUrl = (courtId: number, date: string) => {
   const encodedDate = encodeURIComponent(date);
   return `https://www.spotery.com/f/adf.task-flow?adf.tfDoc=%2FWEB-INF%2Ftaskflows%2Ffacility%2Ftf-faci-detail.xml&psOrgaSk=${courtId}&psReservationDateStr=${encodedDate}&adf.tfId=tf-faci-detail`;
 };

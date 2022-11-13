@@ -1,6 +1,7 @@
+import { TIME_OFFSET } from '../constants';
+
 export const parseStringToDate = (timeString: string) => {
   try {
-    const TIME_OFFSET = 8;
     const time = timeString.match(/(\d+):(\d\d)\s*([Pp]?)/);
     if (!time) {
       return undefined;
@@ -20,7 +21,6 @@ export const parseStringToDate = (timeString: string) => {
 
 export const parseDateToString = (date?: Date) => {
   try {
-    const TIME_OFFSET = 8;
     if (!date) {
       return undefined;
     }
