@@ -1,6 +1,10 @@
 import express from 'express';
+import dotenv from 'dotenv';
 import { COURTS, STATUS_TEXT } from './constants';
+import { setupDb } from './db';
 import { getTimeSlots, runWithBrowser } from './utils';
+
+dotenv.config();
 
 const { PORT } = process.env;
 
@@ -44,6 +48,7 @@ app.get('/ham', async (req, res) => {
   res.send(availabilityResults);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
+  await setupDb();
   console.log(`Listening on port ${PORT}...`);
 });
