@@ -1,4 +1,5 @@
 import { groupBy, mapValues } from 'lodash';
+import mongoose from 'mongoose';
 import { CourtAlerts } from '../models/CourtAlerts';
 import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
 import {
@@ -9,6 +10,7 @@ import {
 import { TimeSlot } from '../types';
 import { DND_END, DND_START } from '../constants';
 import { sendAlert } from '../utils/notifications';
+import { runWithDbConnection, setupDb } from '../db';
 
 const runCheckForAlerts = async () => {
   const courtAlerts = await CourtAlerts.find({
@@ -91,4 +93,4 @@ const runCheck = async () => {
   await runCheckForAlerts();
 };
 
-runCheck();
+runWithDbConnection(() => runCheck());

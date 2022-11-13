@@ -1,4 +1,4 @@
-import { connect } from 'mongoose';
+import mongoose, { connect } from 'mongoose';
 
 export const setupDb = async () => {
   try {
@@ -10,5 +10,15 @@ export const setupDb = async () => {
   } catch (e) {
     console.log('error connecting to mongodb');
     throw e;
+  }
+};
+
+export const runWithDbConnection = async (ops: () => Promise<void>) => {
+  try {
+    await setupDb();
+    await ops();
+  } finally {
+    console.log('closing mongodb connection');
+    await mongoose.connection.close();
   }
 };

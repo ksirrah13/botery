@@ -15,6 +15,7 @@ const puppeteer_helpers_1 = require("../utils/puppeteer-helpers");
 const time_helpers_1 = require("../utils/time-helpers");
 const constants_1 = require("../constants");
 const notifications_1 = require("../utils/notifications");
+const db_1 = require("../db");
 const runCheckForAlerts = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const courtAlerts = yield CourtAlerts_1.CourtAlerts.find({
@@ -81,4 +82,4 @@ const runCheck = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     yield runCheckForAlerts();
 });
-runCheck();
+(0, db_1.runWithDbConnection)(() => runCheck());
