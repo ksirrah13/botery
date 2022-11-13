@@ -9,14 +9,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runCheck = void 0;
 const lodash_1 = require("lodash");
 const CourtAlerts_1 = require("../models/CourtAlerts");
 const puppeteer_helpers_1 = require("../utils/puppeteer-helpers");
 const time_helpers_1 = require("../utils/time-helpers");
 const constants_1 = require("../constants");
 const notifications_1 = require("../utils/notifications");
-const runCheckForUser = () => __awaiter(void 0, void 0, void 0, function* () {
+const runCheckForAlerts = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     const courtAlerts = yield CourtAlerts_1.CourtAlerts.find({
         userId: 'kyle',
@@ -60,15 +59,15 @@ const runCheckForUser = () => __awaiter(void 0, void 0, void 0, function* () {
                 end: alert.timeEnd,
                 foundTimes: stringTimes,
             });
-            // TODO add users and alert strings to db
+            // TODO add users and alert recipients to db
             yield (0, notifications_1.sendAlert)([(_b = process.env.TEST_RECIPIENTS) !== null && _b !== void 0 ? _b : ''], parseInt(alert.courtId, 10), alert.date, stringTimes);
-            yield alert.update({ status: 'alerted' });
+            yield alert.updateOne({ status: 'alerted' });
         }
     }
 });
 const runCheck = () => __awaiter(void 0, void 0, void 0, function* () {
     // await createTestData();
-    if (process.env.ENABLE_DND) {
+    if (process.env.ENABLE_DND === 'true') {
         // don't run or alert at night
         const currentHours = new Date().getHours();
         if (currentHours >= constants_1.DND_START || currentHours < constants_1.DND_END) {
@@ -80,6 +79,6 @@ const runCheck = () => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
     }
-    yield runCheckForUser();
+    yield runCheckForAlerts();
 });
-exports.runCheck = runCheck;
+runCheck();

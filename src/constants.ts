@@ -20,4 +20,4 @@ export const COURTS = {
 export const TIME_OFFSET = 8;
 
 export const DND_START = 23; // 11 pm
-export const DND_END = 8; // am
+export const DND_END = 8; // 8 am

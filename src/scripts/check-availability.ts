@@ -10,7 +10,7 @@ import { TimeSlot } from '../types';
 import { DND_END, DND_START } from '../constants';
 import { sendAlert } from '../utils/notifications';
 
-const runCheckForUser = async () => {
+const runCheckForAlerts = async () => {
   const courtAlerts = await CourtAlerts.find({
     userId: 'kyle',
     status: 'new',
@@ -62,7 +62,7 @@ const runCheckForUser = async () => {
         end: alert.timeEnd,
         foundTimes: stringTimes,
       });
-      // TODO add users and alert strings to db
+      // TODO add users and alert recipients to db
       await sendAlert(
         [process.env.TEST_RECIPIENTS ?? ''],
         parseInt(alert.courtId, 10),
@@ -74,9 +74,9 @@ const runCheckForUser = async () => {
   }
 };
 
-export const runCheck = async () => {
+const runCheck = async () => {
   // await createTestData();
-  if (process.env.ENABLE_DND) {
+  if (process.env.ENABLE_DND === 'true') {
     // don't run or alert at night
     const currentHours = new Date().getHours();
     if (currentHours >= DND_START || currentHours < DND_END) {
@@ -88,5 +88,7 @@ export const runCheck = async () => {
       return;
     }
   }
-  await runCheckForUser();
+  await runCheckForAlerts();
 };
+
+runCheck();
