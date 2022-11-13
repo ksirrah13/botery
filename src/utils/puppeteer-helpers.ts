@@ -2,8 +2,8 @@ import puppeteerOrig, { Browser, Page, executablePath } from 'puppeteer';
 import puppeteerExtra from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import dotenv from 'dotenv';
-import { PAGE_SELECTORS, SlotStatus, STATUS_TEXT } from './constants';
-import { TimeSlot } from './types';
+import { PAGE_SELECTORS, SlotStatus, STATUS_TEXT } from '../constants';
+import { TimeSlot } from '../types';
 
 puppeteerExtra.use(StealthPlugin());
 

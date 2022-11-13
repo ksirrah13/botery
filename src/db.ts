@@ -1,5 +1,4 @@
 import { connect } from 'mongoose';
-import { JobStatus } from './models/JobStatus';
 
 export const setupDb = async () => {
   try {
