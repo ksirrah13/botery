@@ -17,6 +17,8 @@ export const runWithDbConnection = async (ops: () => Promise<void>) => {
   try {
     await setupDb();
     await ops();
+  } catch (e) {
+    console.log('error running db task', e);
   } finally {
     console.log('closing mongodb connection');
     await mongoose.connection.close();
