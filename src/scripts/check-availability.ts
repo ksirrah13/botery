@@ -16,7 +16,6 @@ const runCheckForAlerts = async () => {
     userId: 'kyle',
     status: 'new',
   }).exec();
-  console.log('court alerts counts', courtAlerts.length);
 
   const alertsByCourt = groupBy(courtAlerts, 'courtId');
   const datesByCourtId = mapValues(alertsByCourt, alerts =>
@@ -76,7 +75,7 @@ const runCheckForAlerts = async () => {
   }
 };
 
-const runCheck = async () => {
+export const runCheck = async () => {
   // await createTestData();
   if (process.env.ENABLE_DND === 'true') {
     // don't run or alert at night
