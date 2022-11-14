@@ -63,8 +63,8 @@ const runCheckForAlerts = async () => {
   });
 
   for (const alert of courtAlerts) {
-    const start = alert.startTime;
-    const end = alert.endTime;
+    const start = normalizedTime(alert.startTime);
+    const end = normalizedTime(alert.endTime);
     const timeSlots = resultsByCourtAndDate[alert.courtId]?.[dateToDay(alert.date)];
     const filteredTimes = (timeSlots ?? [])
       .map(slot => timeToDate(slot.time))
