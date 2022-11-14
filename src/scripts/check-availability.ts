@@ -82,7 +82,9 @@ export const runCheck = async () => {
   // await createTestData();
   if (process.env.ENABLE_DND === 'true') {
     // don't run or alert at night
-    const currentHours = new Date().getUTCHours() - TIME_OFFSET;
+    const adjustedTime = new Date();
+    adjustedTime.setHours(adjustedTime.getUTCHours() - TIME_OFFSET);
+    const currentHours = adjustedTime.getUTCHours();
     if (currentHours >= DND_START || currentHours < DND_END) {
       console.log('skipping check during DND time', {
         currentHours,
