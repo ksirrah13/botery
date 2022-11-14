@@ -1,5 +1,6 @@
 import { groupBy, mapValues } from 'lodash';
 import dotenv from 'dotenv';
+import { subDays } from 'date-fns';
 import { CourtAlerts } from '../models/CourtAlerts';
 import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
 import {
@@ -24,6 +25,11 @@ const runCheckForAlerts = async () => {
     status: 'new',
     date: { $gte: today },
   }).exec();
+
+  if (courtAlerts.length === 0) {
+    console.log('no alerts found to check');
+    return;
+  }
 
   const alertsByCourt = groupBy(courtAlerts, 'courtId');
   const datesByCourtId = mapValues(alertsByCourt, alerts =>
@@ -86,6 +92,20 @@ const runCheckForAlerts = async () => {
   }
 };
 
+export const cleanUpOldAlerts = async () => {
+  // clean up old alerts from DB (greater than 2 weeks)
+  const cleanUpThreshold = subDays(normalizedDay(), 14);
+  console.log('running clean up for alerts', {
+    threshold: dateToDay(cleanUpThreshold),
+  });
+  const { deletedCount } = await CourtAlerts.deleteMany({
+    date: { $lte: cleanUpThreshold },
+  });
+  if (deletedCount) {
+    console.log('cleaned up alerts', { deletedCount });
+  }
+};
+
 export const runCheck = async () => {
   // await createTestData();
   if (process.env.ENABLE_DND === 'true') {
@@ -101,6 +121,7 @@ export const runCheck = async () => {
     }
   }
   await runCheckForAlerts();
+  await cleanUpOldAlerts();
 };
 
 runWithDbConnection(() => runCheck());
