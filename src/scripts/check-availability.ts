@@ -3,8 +3,8 @@ import dotenv from 'dotenv';
 import { CourtAlerts } from '../models/CourtAlerts';
 import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
 import {
-  parseDateToString,
-  parseStringToDate,
+  parseDateToTimeString,
+  parseTimeStringToDate,
   validForRange,
 } from '../utils/time-helpers';
 import { TimeSlot } from '../types';
@@ -22,7 +22,7 @@ const runCheckForAlerts = async () => {
 
   const alertsByCourt = groupBy(courtAlerts, 'courtId');
   const datesByCourtId = mapValues(alertsByCourt, alerts =>
-    alerts.map(alert => alert.date),
+    alerts.map(alert => alert.dateString),
   );
 
   const resultsByCourtAndDate = await runWithBrowser(async browser => {
@@ -50,18 +50,20 @@ const runCheckForAlerts = async () => {
   });
 
   for (const alert of courtAlerts) {
-    const start = parseStringToDate(alert.timeStart);
-    const end = parseStringToDate(alert.timeEnd);
-    const timeSlots = resultsByCourtAndDate[alert.courtId]?.[alert.date];
+    const start = parseTimeStringToDate(alert.timeStart);
+    const end = parseTimeStringToDate(alert.timeEnd);
+    const timeSlots = resultsByCourtAndDate[alert.courtId]?.[alert.dateString];
     const filteredTimes = timeSlots
-      .map(slot => parseStringToDate(slot.time))
+      .map(slot => parseTimeStringToDate(slot.time))
       .filter(time => validForRange(start, end, time));
     if (filteredTimes.length > 0) {
-      const stringTimes = filteredTimes.map(time => parseDateToString(time) ?? '');
+      const stringTimes = filteredTimes.map(
+        time => parseDateToTimeString(time) ?? '',
+      );
       console.log('Found available times! Sending alert!', {
         userId: alert.userId,
         courtId: alert.courtId,
-        date: alert.date,
+        date: alert.dateString,
         start: alert.timeStart,
         end: alert.timeEnd,
         foundTimes: stringTimes,
@@ -70,7 +72,7 @@ const runCheckForAlerts = async () => {
       await sendAlert(
         [process.env.TEST_RECIPIENTS ?? ''],
         parseInt(alert.courtId, 10),
-        alert.date,
+        alert.dateString,
         stringTimes,
       );
       await alert.updateOne({ status: 'alerted' });

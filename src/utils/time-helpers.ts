@@ -1,33 +1,31 @@
-import { TIME_OFFSET } from '../constants';
-
-export const parseStringToDate = (timeString: string) => {
+// expected format: HH:MM AM/PM - 09:30 PM
+export const parseTimeStringToDate = (timeString: string) => {
   try {
     const time = timeString.match(/(\d+):(\d\d)\s*([Pp]?)/);
     if (!time) {
       return undefined;
     }
-    const newDate = new Date();
     const parsedHours = parseInt(time[1], 10);
     const isPm = time[3];
     const hours = isPm && parsedHours < 12 ? parsedHours + 12 : parsedHours;
-    newDate.setHours(hours - TIME_OFFSET);
-    newDate.setMinutes(parseInt(time[2], 10) || 0);
-    return newDate;
+    const mins = parseInt(time[2], 10) || 0;
+    return Date.UTC(0, 0, 0, hours, mins || 0);
   } catch (e) {
     console.log('error parsing string to date', timeString);
     return undefined;
   }
 };
 
-export const parseDateToString = (date?: Date) => {
+// returns format: HH:MM AM/PM - 09:30 PM
+export const parseDateToTimeString = (date?: Date) => {
   try {
     if (!date) {
       return undefined;
     }
-    const adjustedHours = date.getHours() + TIME_OFFSET;
-    const isPM = adjustedHours >= 12;
-    const hours = adjustedHours > 12 ? adjustedHours - 12 : adjustedHours;
-    const mins = String(date.getMinutes()).padStart(2, '0');
+    const utcHours = date.getUTCHours();
+    const isPM = utcHours >= 12;
+    const hours = utcHours > 12 ? utcHours - 12 : utcHours;
+    const mins = String(date.getUTCMinutes()).padStart(2, '0');
     return `${hours}:${mins} ${isPM ? 'PM' : 'AM'}`;
   } catch (e) {
     console.log('error parsing date to string', date);
