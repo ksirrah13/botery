@@ -1,4 +1,4 @@
-import { subDays } from 'date-fns';
+import { subDays, subHours } from 'date-fns';
 
 // expected format: HH:MM AM/PM - 09:30 PM
 export const timeToDate = (timeString: string) => {
@@ -47,9 +47,8 @@ const PST_OFFSET = 8;
 
 // time norialized to same date for comparing with other parsed times of day
 export const normalizedTime = (date?: Date) => {
-  const nowUtc = new Date();
-  nowUtc.setUTCHours(nowUtc.getUTCHours() - PST_OFFSET); // since we treat PST as UTC we need to adjust
-  const nowTime = date ?? nowUtc; // if no date provdide use the adjusted time for now
+  // since we treat PST as UTC we need to adjust if we use now
+  const nowTime = date ?? subHours(new Date(), PST_OFFSET);
   return new Date(Date.UTC(0, 0, 0, nowTime.getUTCHours(), nowTime.getUTCMinutes()));
 };
 
