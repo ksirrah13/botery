@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 import { COURTS, STATUS_TEXT } from './constants';
 import { setupDb } from './db';
 import { getTimeSlots, runWithBrowser } from './utils/puppeteer-helpers';
-import { runCheck } from './scripts/check-availability';
+import { dateToDay, dayToDate } from './utils/time-helpers';
 
 dotenv.config();
 
@@ -28,7 +28,7 @@ app.get('/ham', async (req, res) => {
   const availabilityResults = await runWithBrowser(async browser => {
     const availabilityResults: Record<string, Record<string, string[]>> = {};
     for (const day of dateRange) {
-      const date = `11/${day}/2022`;
+      const date = dayToDate(`11/${day}/2022`);
       const courtResults: Record<string, string[]> = {};
       for (const [courtName, courtId] of courts) {
         const timeSlots = await getTimeSlots(browser, { courtId, date });
@@ -40,7 +40,7 @@ app.get('/ham', async (req, res) => {
         }
       }
       if (Object.keys(courtResults).length > 0) {
-        availabilityResults[date] = courtResults;
+        availabilityResults[dateToDay(date)] = courtResults;
       }
     }
     return availabilityResults;

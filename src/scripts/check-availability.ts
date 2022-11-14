@@ -3,21 +3,26 @@ import dotenv from 'dotenv';
 import { CourtAlerts } from '../models/CourtAlerts';
 import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
 import {
-  parseDateToString,
-  parseStringToDate,
+  dateToDay,
+  dateToTime,
+  normalizedDay,
+  normalizedTime,
+  timeToDate,
   validForRange,
 } from '../utils/time-helpers';
 import { TimeSlot } from '../types';
-import { DND_END, DND_START, TIME_OFFSET } from '../constants';
+import { DND_END, DND_START } from '../constants';
 import { sendAlert } from '../utils/notifications';
 import { runWithDbConnection } from '../db';
 
 dotenv.config();
 
 const runCheckForAlerts = async () => {
+  const today = normalizedDay();
   const courtAlerts = await CourtAlerts.find({
     userId: 'kyle',
     status: 'new',
+    date: { $gte: today },
   }).exec();
 
   const alertsByCourt = groupBy(courtAlerts, 'courtId');
@@ -27,12 +32,14 @@ const runCheckForAlerts = async () => {
 
   const resultsByCourtAndDate = await runWithBrowser(async browser => {
     const courtAndDateResults: Record<string, Record<string, TimeSlot[]>> = {};
-    for (const courtIdString of Object.keys(datesByCourtId)) {
-      const courtId = parseInt(courtIdString, 10);
+    for (const courtId of Object.keys(datesByCourtId)) {
       const alertDates = datesByCourtId[courtId];
       const dateResults: Record<string, TimeSlot[]> = {};
       for (const date of alertDates) {
-        console.log('checking for availability', { date, courtId });
+        console.log('checking for availability', {
+          date: dateToDay(date),
+          courtId,
+        });
         const result = await getTimeSlots(
           browser,
           {
@@ -41,36 +48,37 @@ const runCheckForAlerts = async () => {
           },
           { filterByStatus: 'Available' },
         );
-        dateResults[date] = result;
-        console.log('results', { date, courtId, result });
+        dateResults[dateToDay(date)] = result;
+        console.log('results', { date: dateToDay(date), courtId, result });
       }
-      courtAndDateResults[courtIdString] = dateResults;
+      courtAndDateResults[courtId] = dateResults;
     }
     return courtAndDateResults;
   });
 
   for (const alert of courtAlerts) {
-    const start = parseStringToDate(alert.timeStart);
-    const end = parseStringToDate(alert.timeEnd);
-    const timeSlots = resultsByCourtAndDate[alert.courtId]?.[alert.date];
-    const filteredTimes = timeSlots
-      .map(slot => parseStringToDate(slot.time))
+    const start = alert.startTime;
+    const end = alert.endTime;
+    const timeSlots = resultsByCourtAndDate[alert.courtId]?.[dateToDay(alert.date)];
+    const filteredTimes = (timeSlots ?? [])
+      .map(slot => timeToDate(slot.time))
       .filter(time => validForRange(start, end, time));
     if (filteredTimes.length > 0) {
-      const stringTimes = filteredTimes.map(time => parseDateToString(time) ?? '');
+      const stringTimes = filteredTimes.map(time => dateToTime(time));
+      const { userId, courtId, date, startTime, endTime } = alert;
       console.log('Found available times! Sending alert!', {
-        userId: alert.userId,
-        courtId: alert.courtId,
-        date: alert.date,
-        start: alert.timeStart,
-        end: alert.timeEnd,
+        userId,
+        courtId,
+        date: dateToDay(date),
+        start: dateToTime(startTime),
+        end: dateToTime(endTime),
         foundTimes: stringTimes,
       });
       // TODO add users and alert recipients to db
       await sendAlert(
         [process.env.TEST_RECIPIENTS ?? ''],
-        parseInt(alert.courtId, 10),
-        alert.date,
+        courtId,
+        date,
         stringTimes,
       );
       await alert.updateOne({ status: 'alerted' });
@@ -82,14 +90,12 @@ export const runCheck = async () => {
   // await createTestData();
   if (process.env.ENABLE_DND === 'true') {
     // don't run or alert at night
-    const adjustedTime = new Date();
-    adjustedTime.setHours(adjustedTime.getUTCHours() - TIME_OFFSET);
-    const currentHours = adjustedTime.getUTCHours();
-    if (currentHours >= DND_START || currentHours < DND_END) {
+    const currentTime = normalizedTime();
+    if (currentTime > DND_START || currentTime < DND_END) {
       console.log('skipping check during DND time', {
-        currentHours,
-        DND_START,
-        DND_END,
+        currentTime: dateToTime(currentTime),
+        DND_START: dateToTime(DND_START),
+        DND_END: dateToTime(DND_END),
       });
       return;
     }

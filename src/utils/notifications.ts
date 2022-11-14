@@ -11,8 +11,8 @@ const transporter = nodemailer.createTransport({
 
 export const sendAlert = async (
   recipientEmailList: string[],
-  courtId: number,
-  date: string,
+  courtId: string,
+  date: Date,
   times: string[],
 ) => {
   // create reusable transporter object using the default SMTP transport
