@@ -4,6 +4,7 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import dotenv from 'dotenv';
 import { PAGE_SELECTORS, SlotStatus, STATUS_TEXT } from '../constants';
 import { TimeSlot } from '../types';
+import { dateToDay } from './time-helpers';
 
 puppeteerExtra.use(StealthPlugin());
 
@@ -13,8 +14,9 @@ const USE_STEALTH = process.env.USE_STEALTH === 'true';
 
 const puppeteer = USE_STEALTH ? puppeteerExtra : puppeteerOrig;
 
-export const getTennisCourtUrl = (courtId: number, date: string) => {
-  const encodedDate = encodeURIComponent(date);
+export const getTennisCourtUrl = (courtId: string, date: Date) => {
+  const dateString = dateToDay(date);
+  const encodedDate = encodeURIComponent(dateString);
   return `https://www.spotery.com/f/adf.task-flow?adf.tfDoc=%2FWEB-INF%2Ftaskflows%2Ffacility%2Ftf-faci-detail.xml&psOrgaSk=${courtId}&psReservationDateStr=${encodedDate}&adf.tfId=tf-faci-detail`;
 };
 
@@ -35,8 +37,8 @@ const getNewPage = async (browser: Browser, url: string) => {
 };
 
 interface TimeSlotSearchParams {
-  courtId: number;
-  date: string;
+  courtId: string;
+  date: Date;
 }
 
 interface Options {
