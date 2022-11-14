@@ -8,7 +8,7 @@ import {
   validForRange,
 } from '../utils/time-helpers';
 import { TimeSlot } from '../types';
-import { DND_END, DND_START } from '../constants';
+import { DND_END, DND_START, TIME_OFFSET } from '../constants';
 import { sendAlert } from '../utils/notifications';
 import { runWithDbConnection } from '../db';
 
@@ -82,7 +82,7 @@ export const runCheck = async () => {
   // await createTestData();
   if (process.env.ENABLE_DND === 'true') {
     // don't run or alert at night
-    const currentHours = new Date().getHours();
+    const currentHours = new Date().getUTCHours() - TIME_OFFSET;
     if (currentHours >= DND_START || currentHours < DND_END) {
       console.log('skipping check during DND time', {
         currentHours,
