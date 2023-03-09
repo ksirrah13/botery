@@ -84,7 +84,16 @@ app.get('/alerts', async (req, res) => {
   })
     .lean()
     .exec();
-  res.send(results);
+  res.json(results);
+});
+
+app.delete('/alert', async (req, res) => {
+  if (!req.body) {
+    return res.json('missing body');
+  }
+  const { _id } = req.body;
+  const results = await CourtAlerts.findByIdAndDelete(_id);
+  res.json(results);
 });
 
 app.listen(PORT, async () => {
