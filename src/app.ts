@@ -54,7 +54,6 @@ app.get('/ham', async (req, res) => {
 });
 
 app.post('/alert', async (req, res) => {
-  console.log('req', { body: req.body });
   if (!req.body) {
     return res.json('missing body');
   }
