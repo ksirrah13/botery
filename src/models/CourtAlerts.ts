@@ -12,7 +12,7 @@ interface ICourtAlerts {
 const CourtAlertsSchema = new Schema<ICourtAlerts>({
   userId: String,
   courtId: String,
-  status: String,
+  status: { type: String, default: 'new' },
   date: Date,
   startTime: Date,
   endTime: Date,

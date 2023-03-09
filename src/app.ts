@@ -1,15 +1,19 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import { COURTS, STATUS_TEXT } from './constants';
 import { setupDb } from './db';
 import { getTimeSlots, runWithBrowser } from './utils/puppeteer-helpers';
 import { dateToDay, dayToDate } from './utils/time-helpers';
+import { CourtAlerts } from './models/CourtAlerts';
 
 dotenv.config();
 
 const { PORT } = process.env;
 
 const app = express();
+app.use(cors());
+app.use(express.json());
 
 app.get('/', (_req, res) => {
   res.send('Hello world!');
@@ -47,6 +51,41 @@ app.get('/ham', async (req, res) => {
   });
 
   res.send(availabilityResults);
+});
+
+app.post('/alert', async (req, res) => {
+  console.log('req', { body: req.body });
+  if (!req.body) {
+    return res.json('missing body');
+  }
+  const { courtId, date, startTime, endTime } = req.body;
+  const result = await CourtAlerts.findOneAndUpdate(
+    {
+      userId: 'kyle',
+      courtId,
+      date: new Date(date),
+    },
+    {
+      userId: 'kyle',
+      courtId,
+      date: new Date(date),
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+    },
+    { upsert: true, new: true },
+  )
+    .lean()
+    .exec();
+  res.send(result);
+});
+
+app.get('/alerts', async (req, res) => {
+  const results = await CourtAlerts.find({
+    userId: 'kyle',
+  })
+    .lean()
+    .exec();
+  res.send(results);
 });
 
 app.listen(PORT, async () => {
