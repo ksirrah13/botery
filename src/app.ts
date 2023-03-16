@@ -57,25 +57,12 @@ app.post('/alert', async (req, res) => {
   if (!req.body) {
     return res.json('missing body');
   }
-  const { courtId, date, startTime, endTime } = req.body;
-  const result = await CourtAlerts.findOneAndUpdate(
-    {
-      userId: 'kyle',
-      courtId,
-      date: new Date(date),
-    },
-    {
-      userId: 'kyle',
-      courtId,
-      date: new Date(date),
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
-    },
-    { upsert: true, new: true },
-  )
-    .lean()
-    .exec();
-  res.send(result);
+  const { courtIds, date, startTime, endTime } = req.body;
+  const updateOps = createBulkUpdateOps({ courtIds, date, startTime, endTime });
+  const result = await CourtAlerts.bulkWrite(updateOps);
+  res.send({
+    alerts_updated: result.upsertedCount,
+  });
 });
 
 app.get('/alerts', async (req, res) => {
@@ -100,3 +87,34 @@ app.listen(PORT, async () => {
   await setupDb();
   console.log(`Listening on port ${PORT}...`);
 });
+
+const createBulkUpdateOps = ({
+  courtIds,
+  date,
+  startTime,
+  endTime,
+}: {
+  courtIds: string[];
+  date: string;
+  startTime: string;
+  endTime: string;
+}) => {
+  if (!courtIds.length) {
+    return [];
+  }
+  return courtIds.map(courtId => ({
+    updateOne: {
+      filter: { userId: 'kyle', courtId, date: new Date(date) },
+      update: {
+        $set: {
+          userId: 'kyle',
+          courtId,
+          date: new Date(date),
+          startTime: new Date(startTime),
+          endTime: new Date(endTime),
+        },
+      },
+      upsert: true,
+    },
+  }));
+};
