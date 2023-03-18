@@ -15,13 +15,13 @@ import { TimeSlot } from '../types';
 import { DND_END, DND_START } from '../constants';
 import { sendAlert } from '../utils/notifications';
 import { runWithDbConnection } from '../db';
+import { User } from '../models/User';
 
 dotenv.config();
 
 const runCheckForAlerts = async () => {
   const today = normalizedDay();
   const courtAlerts = await CourtAlerts.find({
-    userId: 'kyle',
     status: 'new',
     date: { $gte: today },
   }).exec();
@@ -80,14 +80,20 @@ const runCheckForAlerts = async () => {
         end: dateToTime(endTime),
         foundTimes: stringTimes,
       });
-      // TODO add users and alert recipients to db
-      await sendAlert(
-        [process.env.TEST_RECIPIENTS ?? ''],
-        courtId,
-        date,
-        stringTimes,
-      );
-      await alert.updateOne({ status: 'alerted' });
+      const userForAlert = await User.findOne({ userId: alert.userId })
+        .lean()
+        .exec();
+      if (userForAlert && userForAlert.email) {
+        await sendAlert(
+          [userForAlert.email, process.env.TEST_RECIPIENTS ?? ''],
+          courtId,
+          date,
+          stringTimes,
+        );
+        await alert.updateOne({ status: 'alerted' });
+      } else {
+        console.error('no email found for user to alert', { userId: alert.userId });
+      }
     }
   }
 };

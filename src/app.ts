@@ -57,8 +57,14 @@ app.post('/alert', async (req, res) => {
   if (!req.body) {
     return res.json('missing body');
   }
-  const { courtIds, date, startTime, endTime } = req.body;
-  const updateOps = createBulkUpdateOps({ courtIds, date, startTime, endTime });
+  const { courtIds, date, startTime, endTime, userId } = req.body;
+  const updateOps = createBulkUpdateOps({
+    courtIds,
+    date,
+    startTime,
+    endTime,
+    userId,
+  });
   const result = await CourtAlerts.bulkWrite(updateOps);
   res.send({
     alerts_updated: result.upsertedCount,
@@ -93,21 +99,23 @@ const createBulkUpdateOps = ({
   date,
   startTime,
   endTime,
+  userId,
 }: {
   courtIds: string[];
   date: string;
   startTime: string;
   endTime: string;
+  userId: string;
 }) => {
   if (!courtIds.length) {
     return [];
   }
   return courtIds.map(courtId => ({
     updateOne: {
-      filter: { userId: 'kyle', courtId, date: new Date(date) },
+      filter: { userId, courtId, date: new Date(date) },
       update: {
         $set: {
-          userId: 'kyle',
+          userId,
           courtId,
           date: new Date(date),
           startTime: new Date(startTime),
