@@ -72,8 +72,10 @@ app.post('/alert', async (req, res) => {
 });
 
 app.get('/alerts', async (req: Request<{ userId?: string }>, res) => {
-  const { userId } = req.params;
-  const results = await CourtAlerts.find({ userId }).lean().exec();
+  const { userId } = req.query;
+  const results = userId
+    ? await CourtAlerts.find({ userId }).lean().exec()
+    : await CourtAlerts.find().lean().exec();
   res.json(results);
 });
 
