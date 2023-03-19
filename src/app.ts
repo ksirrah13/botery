@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { COURTS, STATUS_TEXT } from './constants';
@@ -71,12 +71,9 @@ app.post('/alert', async (req, res) => {
   });
 });
 
-app.get('/alerts', async (req, res) => {
-  const results = await CourtAlerts.find({
-    userId: 'kyle',
-  })
-    .lean()
-    .exec();
+app.get('/alerts', async (req: Request<{ userId?: string }>, res) => {
+  const { userId } = req.params;
+  const results = await CourtAlerts.find({ userId }).lean().exec();
   res.json(results);
 });
 
