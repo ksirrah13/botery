@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "lint:ci": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
-    "check-availability": "node dist/scripts/check-availability.js",
+    "check-availability": "node -r newrelic dist/scripts/check-availability.js",
     "dev:check": "npm run build && node dist/scripts/check-availability.js"
   },
   "keywords": [],
