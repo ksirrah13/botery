@@ -12,7 +12,7 @@ import {
   validForRange,
 } from '../utils/time-helpers';
 import { TimeSlot } from '../types';
-import { DND_END, DND_START } from '../constants';
+import { DND_END, DND_START, STATUS_TEXT } from '../constants';
 import { sendAlert } from '../utils/notifications';
 import { runWithDbConnection } from '../db';
 import { User } from '../models/User';
@@ -67,6 +67,7 @@ const runCheckForAlerts = async () => {
     const end = normalizedTime(alert.endTime);
     const timeSlots = resultsByCourtAndDate[alert.courtId]?.[dateToDay(alert.date)];
     const filteredTimes = (timeSlots ?? [])
+      .filter(slot => slot.time !== STATUS_TEXT.AVAILABLE)
       .map(slot => timeToDate(slot.time))
       .filter(time => validForRange(start, end, time));
     if (filteredTimes.length > 0) {
