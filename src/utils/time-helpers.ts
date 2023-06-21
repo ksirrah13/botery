@@ -56,21 +56,18 @@ const getPtOffset = () => {
 
 // time norialized to same date for comparing with other parsed times of day
 export const normalizedTime = (date?: Date) => {
-  // since we treat PST as UTC we need to adjust if we use now
+  // since we treat PT as UTC we need to adjust if we use now
   const nowTime = date ?? subHours(new Date(), getPtOffset());
   return new Date(Date.UTC(0, 0, 0, nowTime.getUTCHours(), nowTime.getUTCMinutes()));
 };
 
-// get todays date in midnight PST
+// get todays date in midnight PT
 export const normalizedDay = () => {
-  const nowUtc = new Date();
-  // if its between midnight and 8am that means UTC has moved on to the next day
-  // so for PST we need to come back one day
-  const adjustedDays =
-    nowUtc.getUTCHours() < getPtOffset() ? subDays(nowUtc, 1) : nowUtc;
-  adjustedDays.setUTCHours(0);
-  adjustedDays.setUTCMinutes(0);
-  adjustedDays.setUTCSeconds(0);
-  adjustedDays.setUTCMilliseconds(0);
-  return adjustedDays;
+  // since we treat PT as UTC we need to adjust if we use now to ensure we have the right date
+  const nowUtc = subHours(new Date(), getPtOffset());
+  nowUtc.setUTCHours(0);
+  nowUtc.setUTCMinutes(0);
+  nowUtc.setUTCSeconds(0);
+  nowUtc.setUTCMilliseconds(0);
+  return nowUtc;
 };
