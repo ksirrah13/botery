@@ -67,7 +67,7 @@ const runCheckForAlerts = async () => {
     const end = normalizedTime(alert.endTime);
     const timeSlots = resultsByCourtAndDate[alert.courtId]?.[dateToDay(alert.date)];
     const filteredTimes = (timeSlots ?? [])
-      .filter(slot => slot.time !== STATUS_TEXT.AVAILABLE)
+      .filter(slot => slot.time !== STATUS_TEXT.UNAVAILABLE)
       .map(slot => timeToDate(slot.time))
       .filter(time => validForRange(start, end, time));
     if (filteredTimes.length > 0) {

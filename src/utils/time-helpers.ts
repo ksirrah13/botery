@@ -1,4 +1,4 @@
-import { subDays, subHours } from 'date-fns';
+import { subHours } from 'date-fns';
 
 // expected format: HH:MM AM/PM - 09:30 PM
 export const timeToDate = (timeString: string) => {
