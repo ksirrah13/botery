@@ -9,7 +9,7 @@ export const STATUS_TEXT = {
 export type SlotStatus = 'Unavailable' | 'Booked' | 'Available';
 
 export const PAGE_SELECTORS = {
-  CONTENT_BOX: '#pt1\\:dcTime\\:dc_g1',
+  CONTENT_BOX: '#pt1\\:dcTime\\:pb1\\:\\:content',
   UNAVAILBLE_TEXT: '#pt1\\:dcTime\\:dc_ot1',
   ALL_TIME_BLOCKS: '#pt1\\:dcTime\\:pgl23 > div',
 };
