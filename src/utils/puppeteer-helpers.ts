@@ -113,7 +113,7 @@ export const runWithBrowser = async <T>(
   opWithBrowser: (browser: Browser) => Promise<T>,
 ) => {
   const browser = await puppeteer.launch({
-    headless: !GO_HEADFUL ? 'new' : false,
+    headless: !GO_HEADFUL,
     ...(GO_HEADFUL ? { slowMo: 200 } : {}),
     args: ['--no-sandbox'],
     executablePath: executablePath(),
