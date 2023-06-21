@@ -43,12 +43,21 @@ export const dateToDay = (date: Date) => {
 export const validForRange = (start: Date, end: Date, time: Date) =>
   time <= end && time >= start;
 
-const PST_OFFSET = 8;
+const getPtOffset = () => {
+  const PST_OFFSET = 7;
+  const PDT_OFFSET = 8;
+  const today = new Date();
+  // starting beginning of april up to end of october (not quite exact)
+  if (today.getUTCMonth() >= 3 && today.getUTCMonth() < 10) {
+    return PST_OFFSET;
+  }
+  return PDT_OFFSET;
+};
 
 // time norialized to same date for comparing with other parsed times of day
 export const normalizedTime = (date?: Date) => {
   // since we treat PST as UTC we need to adjust if we use now
-  const nowTime = date ?? subHours(new Date(), PST_OFFSET);
+  const nowTime = date ?? subHours(new Date(), getPtOffset());
   return new Date(Date.UTC(0, 0, 0, nowTime.getUTCHours(), nowTime.getUTCMinutes()));
 };
 
@@ -58,7 +67,7 @@ export const normalizedDay = () => {
   // if its between midnight and 8am that means UTC has moved on to the next day
   // so for PST we need to come back one day
   const adjustedDays =
-    nowUtc.getUTCHours() < PST_OFFSET ? subDays(nowUtc, 1) : nowUtc;
+    nowUtc.getUTCHours() < getPtOffset() ? subDays(nowUtc, 1) : nowUtc;
   adjustedDays.setUTCHours(0);
   adjustedDays.setUTCMinutes(0);
   adjustedDays.setUTCSeconds(0);

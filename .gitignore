@@ -4,3 +4,4 @@ dist
 Procfile
 .env
 .cache
+newrelic_agent.log
