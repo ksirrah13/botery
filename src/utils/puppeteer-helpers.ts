@@ -20,7 +20,7 @@ export const getTennisCourtUrl = (courtId: string, date: Date) => {
   return `https://www.spotery.com/f/adf.task-flow?adf.tfDoc=%2FWEB-INF%2Ftaskflows%2Ffacility%2Ftf-faci-detail.xml&psOrgaSk=${courtId}&psReservationDateStr=${encodedDate}&adf.tfId=tf-faci-detail`;
 };
 
-const getNewPage = async (browser: Browser, url: string) => {
+const getNewPage = async (browser: Browser, url?: string) => {
   try {
     const page = await browser.newPage();
     if (!USE_STEALTH) {
@@ -29,7 +29,9 @@ const getNewPage = async (browser: Browser, url: string) => {
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
       );
     }
-    await page.goto(url);
+    if (url) {
+      await page.goto(url);
+    }
     return page;
   } catch (e) {
     console.log('error getting new page for url', { url });
@@ -85,18 +87,15 @@ const getTimeSlotsFromPage = async (page?: Page): Promise<TimeSlot[]> => {
 };
 
 export const getTimeSlots = async (
-  browser: Browser,
+  page: Page,
   { courtId, date }: TimeSlotSearchParams,
   options?: Options,
 ): Promise<TimeSlot[]> => {
   try {
     const courtUrl = getTennisCourtUrl(courtId, date);
-    const courtPage = await getNewPage(browser, courtUrl);
-    const result = await getTimeSlotsFromPage(courtPage);
+    await page.goto(courtUrl);
+    const result = await getTimeSlotsFromPage(page);
 
-    if (!GO_HEADFUL) {
-      await courtPage?.close();
-    }
     if (options?.filterByStatus) {
       return result.filter(({ status }) => status === options.filterByStatus);
     }
@@ -125,3 +124,16 @@ export const runWithBrowser = async <T>(
   }
   return result;
 };
+
+export const runWithPage = async <T>(opWithPage: (page: Page) => Promise<T>) =>
+  runWithBrowser(async browser => {
+    const sharedPage = await getNewPage(browser);
+    if (!sharedPage) {
+      throw new Error('error getting shared page for op');
+    }
+    const result = await opWithPage(sharedPage);
+    if (!GO_HEADFUL) {
+      await sharedPage.close();
+    }
+    return result;
+  });

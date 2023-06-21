@@ -1,8 +1,13 @@
-import { groupBy, mapValues } from 'lodash';
-import dotenv from 'dotenv';
 import { subDays } from 'date-fns';
+import dotenv from 'dotenv';
+import { groupBy, mapValues } from 'lodash';
+import { DND_END, DND_START, STATUS_TEXT } from '../constants';
+import { runWithDbConnection } from '../db';
 import { CourtAlerts } from '../models/CourtAlerts';
-import { getTimeSlots, runWithBrowser } from '../utils/puppeteer-helpers';
+import { User } from '../models/User';
+import { TimeSlot } from '../types';
+import { sendAlert } from '../utils/notifications';
+import { getTimeSlots, runWithPage } from '../utils/puppeteer-helpers';
 import {
   dateToDay,
   dateToTime,
@@ -11,11 +16,6 @@ import {
   timeToDate,
   validForRange,
 } from '../utils/time-helpers';
-import { TimeSlot } from '../types';
-import { DND_END, DND_START, STATUS_TEXT } from '../constants';
-import { sendAlert } from '../utils/notifications';
-import { runWithDbConnection } from '../db';
-import { User } from '../models/User';
 
 dotenv.config();
 
@@ -36,7 +36,7 @@ const runCheckForAlerts = async () => {
     alerts.map(alert => alert.date),
   );
 
-  const resultsByCourtAndDate = await runWithBrowser(async browser => {
+  const resultsByCourtAndDate = await runWithPage(async page => {
     const courtAndDateResults: Record<string, Record<string, TimeSlot[]>> = {};
     for (const courtId of Object.keys(datesByCourtId)) {
       const alertDates = datesByCourtId[courtId];
@@ -47,7 +47,7 @@ const runCheckForAlerts = async () => {
           courtId,
         });
         const result = await getTimeSlots(
-          browser,
+          page,
           {
             courtId,
             date,
