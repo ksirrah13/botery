@@ -50,7 +50,7 @@ const getTimeSlotsFromPage = async (page?: Page): Promise<TimeSlot[]> => {
     console.log('empty page for time slots');
     return [{ time: STATUS_TEXT.UNAVAILABLE, status: 'Error getting page' }];
   }
-  await page.waitForSelector(PAGE_SELECTORS.CONTENT_BOX);
+  await page.waitForSelector(PAGE_SELECTORS.CONTENT_BOX, { timeout: 60000 });
   const results = await page.evaluate(
     ({ STATUS_TEXT, PAGE_SELECTORS }) => {
       const unavailableForBooking = document.querySelector(
